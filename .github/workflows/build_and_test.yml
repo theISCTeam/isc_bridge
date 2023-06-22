@@ -1,0 +1,65 @@
+name: EVM CI
+
+on: [push, pull_request]
+
+
+jobs:
+  evm_ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Foundry
+        uses: onbjerg/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install dependencies
+        working-directory: ./evm
+        run: forge install
+
+      - name: Check contract sizes
+        working-directory: ./evm
+        run: forge build --sizes
+
+      - name: Check gas snapshots
+        working-directory: ./evm
+        run: forge snapshot --check
+
+      - name: Run tests
+        working-directory: ./evm
+        run: forge test
+        env:
+          # Only fuzz intensely if we're running this action on a push to main or for a PR going into main:
+          FOUNDRY_PROFILE: ${{ (github.ref == 'refs/heads/main' || github.base_ref == 'main') && 'intense' }}
+  wormhole_attestation_ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v2.2.0
+        with:
+          node-version: 18.12
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - uses: actions/cache@v3
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install project dependencies
+        working-directory: ./wormhole-attestation
+        run: yarn --prefer-offline
+      - name: build
+        working-directory: ./wormhole-attestation
+        run: yarn build
+      - name: test
+        working-directory: ./wormhole-attestation
+        run: yarn test
