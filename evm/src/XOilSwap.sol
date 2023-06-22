@@ -16,19 +16,23 @@ contract XOilSwap is ReentrancyGuard {
     /// @notice Emitted on a successful swap
     /// @param caller The user who performed the swap
     /// @param amount The amount swapped
-    event Swap(address indexed caller, uint256 amount);
+    event Swap(address indexed caller, uint256 amount, bool indexed toNativeToken);
 
     /// @dev Prevents a swap when:
-    /// (a) the caller hasn't approved this contract to spend xOilToken on its behalf or
-    /// (b) this contract doesn't have enough native token balance
-    modifier eligibleToSwap(uint256 amount) {
+    /// (a) the caller hasn't approved this contract to spend input token on its behalf or
+    /// (b) this contract doesn't have enough output token balance
+    /// @param amount the amount to swap
+    /// @param toNativeToken true if xOil to native token swap, false if native token to xOil swap
+    modifier eligibleToSwap(uint256 amount, bool toNativeToken) {
+        IERC20 inputToken = toNativeToken ? xOilToken : nativeToken;
+        IERC20 outputToken = toNativeToken ? nativeToken : xOilToken;
         require(
-            xOilToken.allowance(msg.sender, xOilSwapAddress) >= amount,
-            "xOilSwap: amount exceeds allowance"
+            inputToken.allowance(msg.sender, xOilSwapAddress) >= amount,
+            "xOilSwap: amount exceeds input token allowance"
         );
         require(
-            nativeToken.balanceOf(xOilSwapAddress) >= amount,
-            "xOilSwap: amount exceeds native token balance"
+            outputToken.balanceOf(xOilSwapAddress) >= amount,
+            "xOilSwap: amount exceeds output token balance"
         );
         _;
     }
@@ -39,10 +43,14 @@ contract XOilSwap is ReentrancyGuard {
         xOilSwapAddress = address(this);
     }
 
-    /// @notice Do a 1-to-1 swap from xOil to native token
+    /// @notice Do a 1-to-1 swap between xOil and native token
     /// @param amount the amount to swap
-    function swap(uint256 amount) external eligibleToSwap(amount) nonReentrant {
-        xOilToken.safeTransferFrom(msg.sender, xOilSwapAddress, amount);
-        nativeToken.safeTransfer(msg.sender, amount);
+    /// @param toNativeToken true if xOil to native token swap, false if native token to xOil swap
+    function swap(uint256 amount, bool toNativeToken) external eligibleToSwap(amount, toNativeToken) nonReentrant {
+        IERC20 inputToken = toNativeToken ? xOilToken : nativeToken;
+        IERC20 outputToken = toNativeToken ? nativeToken : xOilToken;
+        inputToken.safeTransferFrom(msg.sender, xOilSwapAddress, amount);
+        outputToken.safeTransfer(msg.sender, amount);
+        emit Swap(msg.sender, amount, toNativeToken);
     }
 }
