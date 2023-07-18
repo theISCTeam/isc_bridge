@@ -35,6 +35,10 @@ pub fn swap_isc_to_oil(program_id: &Pubkey, accounts: &[AccountInfo], amount: u6
     msg!("Parsed all accounts");
 
     // Account validations
+    if !acc_info_initializer.is_signer {
+        return Err(ProgramError::MissingRequiredSignature)
+    }
+
     let user_isc_account = TokenAccount::unpack_from_slice(&acc_info_initializer_isc_ata.try_borrow_data()?)?;
     if user_isc_account.owner != *acc_info_initializer.key {
         return Err(TokenError::OwnerMismatch.into())
@@ -202,6 +206,10 @@ pub fn swap_oil_to_isc(program_id: &Pubkey, accounts: &[AccountInfo], amount: u6
     msg!("Parsed all accounts");
 
     // Account validations
+    if !acc_info_initializer.is_signer {
+        return Err(ProgramError::MissingRequiredSignature)
+    }
+
     let user_isc_account = TokenAccount::unpack_from_slice(&acc_info_initializer_isc_ata.try_borrow_data()?)?;
     if user_isc_account.owner != *acc_info_initializer.key {
         return Err(TokenError::OwnerMismatch.into())
