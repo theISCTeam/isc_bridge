@@ -1,5 +1,5 @@
 [package]
-name = "hello_world"
+name = "swap_isc_oil"
 version = "0.1.0"
 edition = "2021"
 
@@ -13,5 +13,5 @@ spl-token = {version = "3.5.0", features = ["no-entrypoint"]}
 
 
 [lib]
-name = "hello_world"
+name = "swap_isc_oil"
 crate-type = ["cdylib", "lib"]

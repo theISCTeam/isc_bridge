@@ -814,16 +814,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hello_world"
-version = "0.1.0"
-dependencies = [
- "borsh 0.10.3",
- "solana-program",
- "spl-associated-token-account",
- "spl-token",
-]
-
-[[package]]
 name = "hermit-abi"
 version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1856,6 +1846,16 @@ name = "subtle"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
+
+[[package]]
+name = "swap_isc_oil"
+version = "0.1.0"
+dependencies = [
+ "borsh 0.10.3",
+ "solana-program",
+ "spl-associated-token-account",
+ "spl-token",
+]
 
 [[package]]
 name = "syn"

@@ -3,7 +3,7 @@ use solana_program::{program_error::ProgramError, pubkey::Pubkey};
 use solana_program::account_info::{AccountInfo, next_account_info};
 use solana_program::msg;
 use spl_associated_token_account::get_associated_token_address;
-use spl_associated_token_account::instruction::{create_associated_token_account, create_associated_token_account_idempotent};
+use spl_associated_token_account::instruction::{create_associated_token_account};
 use spl_token::{ error::TokenError, state::{Account as TokenAccount} };
 use solana_program::{
     program_pack::Pack,
