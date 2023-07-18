@@ -1,0 +1,17 @@
+dependencies:
+ - OpenZeppelin/openzeppelin-contracts@4.9.2
+compiler:
+  solc:
+    remappings: 
+     - '@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.9.2'
+
+development:
+    host: http://127.0.0.1
+    reverting_tx_gas_limit: 6721975
+    test_rpc:
+        cmd: ganache-cli
+        port: 8548
+        gas_limit: 6721975
+        accounts: 10
+        evm_version: petersburg
+        mnemonic: brownie

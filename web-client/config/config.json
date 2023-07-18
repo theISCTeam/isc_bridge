@@ -1,0 +1,45 @@
+{
+    "evm0": {
+        "type": "evm",
+        "wormholeChainId": 2,
+        "rpc": "http://localhost:8545",
+        "privateKey": "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d",
+        "publicKey": "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1",
+        "bridgeAddress": "0xC89Ce4735882C9F0f0FE26686c53074E09B0D550",
+        "tokenBridgeAddress": "0x0290FB167208Af455bB137780163b7B7a9a10C16",
+        "isc": "0x8914a9E5C5E234fDC3Ce9dc155ec19F43947ab59",
+        "xoil": "0xC09C99332ea9A5Aa7DBe471fD2B9C674dFd25344",
+        "swap_contract": "0x7231ECd1355a60251eE56Bf81f987969fc9bAe29",
+        "decimals": 9
+    },
+    "evm1": {
+        "type": "evm",
+        "wormholeChainId": 4,
+        "rpc": "http://localhost:8546",
+        "privateKey": "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d",
+        "publicKey": "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1",
+        "tokenBridgeAddress": "0x0290FB167208Af455bB137780163b7B7a9a10C16",
+        "bridgeAddress": "0xC89Ce4735882C9F0f0FE26686c53074E09B0D550",
+        "testToken": "0x2D8BE6BF0baA74e0A907016679CaE9190e80dD0A",
+        "wrappedToken": "0xb39706ffb0CF1FB0657459FF6bC5002954672AD1",
+        "decimals": 9
+    },
+    "solana": {
+        "type": "solana",
+        "wormholeChainId": 1,
+        "rpc": "http://localhost:8899",
+        "privateKey": [71,50,29,33,210,143,244,24,141,16,66,62,164,82,200,191,134,253,235,135,20,248,255,205,196,70,30,62,21,178,220,119,209,91,18,240,18,254,121,178,128,233,133,89,63,9,131,236,92,247,18,201,88,239,98,253,8,161,64,183,96,11,226,196],
+        "tokenBridgeAddress": "B6RHG3mfcckmrYN1UhmJzyS1XX3fZKbkeUcpJe9Sy3FE",
+        "bridgeAddress": "Bridge1p5gheXUvJ6jGWGeCsgPKgnE3YgdGKRVCMY9o",
+        "testToken": "HXvmV3WGGpAqnehA5ah18b3bpsDApFqXrFvgqVW6dCX3",
+        "swap_contract": "7JAUAovyJHXsvqJkeXmjiTUpWTBADiFPagmkgj2Y2s47",
+        "isc": "C2Jgz6DdupWkdhMpxdZRSy8LL7m9ZFDnUn4tsgPv2H7k",
+        "oil": "HXvmV3WGGpAqnehA5ah18b3bpsDApFqXrFvgqVW6dCX3",
+        "spl_ata_program_id": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+        "wormhole_oil_ata": "HyH8B7TFd2Ez8pTysxcgMFSHY1SrJaDL91xz3MjpkmoR",
+        "decimals": 9
+    },
+    "wormhole": {
+        "restAddress": "http://localhost:7071"
+    }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "nextjs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "next": "^13.4.8",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}

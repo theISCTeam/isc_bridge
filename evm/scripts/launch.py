@@ -1,0 +1,22 @@
+from brownie import web3, accounts, network, ISCToken, OILToken, Swap
+
+def main():
+    account = accounts.load('wormhole')
+    isc = ISCToken.deploy({'from':account})
+    #oil = OILToken.deploy({'from':account})
+    #swap = Swap.deploy(oil.address, isc.address, {'from':account})
+    #balance = oil.balanceOf(account.address)
+    #print(isc.name(), isc.totalSupply(), isc.decimals())
+    #isc.mint(account.address, 100)
+    #isc.mint(swap.address, 100)
+    #oil.mint(account.address, 100)
+    #oil.mint(swap.address, 100)
+    #print_balance(swap, oil, isc)
+    #isc.increaseAllowance(swap.address, 200)
+    #oil.increaseAllowance(swap.address, 200)
+    #swap.swap(1, 0)
+    #print_balance(swap, oil, isc)
+    #swap.swap(1, 1)
+    #swap.swap(1, 1)
+    #print_balance(swap, oil, isc)
+    #swap.swap(1, 1)
