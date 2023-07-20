@@ -141,6 +141,7 @@ function EthereumToSolanaApp({amount, curr_step, setBalance, setCurrStep, my_app
         result.push({'item':'User OIL', 'solana':solana_bal.user_oil, 'ethereum':eth_bal.user_oil})
         result.push({'item':'Pool ISC', 'solana':solana_bal.pool_isc, 'ethereum':eth_bal.pool_isc})
         result.push({'item':'Pool OIL', 'solana':solana_bal.pool_oil, 'ethereum':eth_bal.pool_oil})
+        result.push({'item':'User SOL', 'solana':solana_bal.user_sol, 'ethereum':0})
         setBalance(result)
     }
 
@@ -252,6 +253,7 @@ function SolanaToEthereumApp({amount, curr_step, setBalance, setCurrStep, my_app
         result.push({'item':'User OIL', 'solana':solana_bal.user_oil, 'ethereum':eth_bal.user_oil})
         result.push({'item':'Pool ISC', 'solana':solana_bal.pool_isc, 'ethereum':eth_bal.pool_isc})
         result.push({'item':'Pool OIL', 'solana':solana_bal.pool_oil, 'ethereum':eth_bal.pool_oil})
+        result.push({'item':'User SOL', 'solana':solana_bal.user_sol, 'ethereum':0})
         setBalance(result)
     }
 
@@ -381,12 +383,20 @@ export default function HomePage() {
         result.push({'item':'User OIL', 'solana':solana_bal.user_oil, 'ethereum':eth_bal.user_oil})
         result.push({'item':'Pool ISC', 'solana':solana_bal.pool_isc, 'ethereum':eth_bal.pool_isc})
         result.push({'item':'Pool OIL', 'solana':solana_bal.pool_oil, 'ethereum':eth_bal.pool_oil})
+        result.push({'item':'User SOL', 'solana':solana_bal.user_sol, 'ethereum':0})
         setBalance(result)
+    }
+
+    async function updateBalanceLoop() {
+        while (true) {
+            await new Promise(r => setTimeout(r, 2000));
+            await updateBalance();
+        }
     }
 
     useEffect(() => {
         const fetchData = async () => {
-            await updateBalance();
+            await updateBalanceLoop();
         }
         fetchData()
     }, [])

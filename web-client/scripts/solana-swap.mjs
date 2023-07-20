@@ -44,13 +44,14 @@ class SolanaSwap {
         this.programId = new PublicKey(this.config.swap_contract);
         this.isc = new PublicKey(this.config.isc);
         this.oil = new PublicKey(this.config.oil);
-        this.keypair = Keypair.fromSecretKey(this.secretKey);
+        //this.keypair = Keypair.fromSecretKey(this.secretKey);
+        this.pubkey = null
         this.user_isc_ata = null
         this.user_oil_ata = null
         this.pda_isc_ata = null
         this.pda_oil_ata = null
+        this.provider = null
         //this.wormhole_oil_ata = new PublicKey(this.config.wormhole_oil_ata);
-        this.updateAccounts()
         this.connection = new Connection("http://127.0.0.1:8899")
         this.options = {
             commitment: 'processed'
@@ -69,11 +70,56 @@ class SolanaSwap {
                 ]
             ]
         )
+        //this.fetch_provider()
+    }
+
+    async fetch_provider() {
+        if (typeof window !== "undefined") {
+            const getProvider = () => {
+                if ('phantom' in window) {
+                    const provider = window.phantom?.solana;
+                
+                    if (provider?.isPhantom) {
+                        console.log("Provider is", provider)
+                        return provider;
+
+                    } else {
+                        return null;
+                    }
+                }
+            };
+            this.provider = getProvider()
+        }
+        if (this.provider != null) {
+            try {
+                const resp = await this.provider.connect();
+                console.log("Public Key is")
+                console.log(resp.publicKey.toString());
+                this.pubkey = resp.publicKey
+                // 26qv4GCcx98RihuK3c4T6ozB3J7L6VwCuFVc7Ta2A3Uo 
+            } catch (err) {
+                // { code: 4001, message: 'User rejected the request.' }
+            }
+        } else {
+            this.keypair = Keypair.fromSecretKey(this.secretKey);
+            this.pubkey = this.keypair.publicKey
+        }
     }
 
     async fetch_balance() {
+        if (this.pubkey == null) {
+            return {
+                'user_isc': 0,
+                'user_oil': 0,
+                'pool_isc': 0,
+                'pool_oil': 0,
+                'user_sol': 0,
+                //'wormhole_oil': wormhole_oil.value.uiAmount
+            }
+        }
         let user_isc = await this.connection.getTokenAccountBalance(this.user_isc_ata, "processed")
         let user_oil = await this.connection.getTokenAccountBalance(this.user_oil_ata, "processed")
+        let user_sol = await this.connection.getBalance(this.pubkey, "processed")
         let pda_isc = await this.connection.getTokenAccountBalance(this.pda_isc_ata, "processed")
         let pda_oil = await this.connection.getTokenAccountBalance(this.pda_oil_ata, "processed")
         //let wormhole_oil = await this.connection.getTokenAccountBalance(this.wormhole_oil_ata, "processed")
@@ -82,6 +128,7 @@ class SolanaSwap {
             'user_oil': user_oil.value.uiAmount,
             'pool_isc': pda_isc.value.uiAmount,
             'pool_oil': pda_oil.value.uiAmount,
+            'user_sol': user_sol/1_000_000_000,
             //'wormhole_oil': wormhole_oil.value.uiAmount
         }
     }
@@ -100,10 +147,11 @@ class SolanaSwap {
         )[0];
     }
 
-    updateAccounts() {
-        const acc_info_initializer = this.keypair.publicKey
-        const acc_info_initializer_isc_ata = this.findAssociatedTokenAddress(this.keypair.publicKey, this.isc)
-        const acc_info_initializer_oil_ata = this.findAssociatedTokenAddress(this.keypair.publicKey, this.oil)
+    async updateAccounts() {
+        await this.fetch_provider();
+        const acc_info_initializer = this.pubkey
+        const acc_info_initializer_isc_ata = this.findAssociatedTokenAddress(this.pubkey, this.isc)
+        const acc_info_initializer_oil_ata = this.findAssociatedTokenAddress(this.pubkey, this.oil)
         const acc_info_program = this.programId
         const acc_info_pda = PublicKey.findProgramAddressSync([Buffer.from("oolaa")], this.programId)[0]
         const acc_info_pda_isc_ata = this.findAssociatedTokenAddress(acc_info_pda, this.isc)
@@ -151,23 +199,22 @@ class SolanaSwap {
         tx.add(ix)
         console.log("3 new function")
         console.log(await this.fetch_balance())
-        const txid = await sendAndConfirmTransaction(this.connection, tx, [this.keypair], this.options)
+        let txid = null
+        if (this.provider != null) {
+            let blockhash = (await this.connection.getLatestBlockhash('finalized')).blockhash;
+            tx.recentBlockhash = blockhash;
+            tx.feePayer = this.pubkey
+            const tx_signed = await this.provider.signTransaction(tx);
+            txid = await this.connection.sendRawTransaction(tx_signed.serialize(), this.options);
+        } else {
+            txid = await sendAndConfirmTransaction(this.connection, tx, [this.keypair], this.options)
+        }
         return txid
-        console.log("4 new function")
-    }
-
-    async hello() {
-        console.log("Hello")
     }
 
     async swap_isc_to_oil(amount) {
-        console.log("0Inside the function")
-        console.log(Keypair)
-        await this.hello()
         const scaled_amount = amount*(10**this.config.decimals)
-        console.log("1Inside the function")
         const data = new Parameters(0, scaled_amount)
-        console.log("2Inside the function")
         return await this.swap(data)
     }
 

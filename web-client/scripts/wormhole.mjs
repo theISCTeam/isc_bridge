@@ -26,14 +26,51 @@ class Wormhole {
         this.programId = new PublicKey(this.config.solana.swap_contract);
         this.isc = new PublicKey(this.config.solana.isc);
         this.oil = new PublicKey(this.config.solana.oil);
-        this.keypair = Keypair.fromSecretKey(this.secretKey);
+        //this.keypair = Keypair.fromSecretKey(this.secretKey);
         this.connection = new Connection("http://localhost:8899", "confirmed")
         this.options = {
             commitment: 'processed'
         }
         this.deployment = []
         this.wrappedTestTokenAddressFromSolana = null;
-        this.user_oil_ata = this.findAssociatedTokenAddress(this.keypair.publicKey, this.oil).toString()
+        this.pubkey = null
+        this.provider = null
+        this.fetch_provider()
+    }
+
+    async fetch_provider() {
+        if (typeof window !== "undefined") {
+            const getProvider = () => {
+                if ('phantom' in window) {
+                    const provider = window.phantom?.solana;
+                
+                    if (provider?.isPhantom) {
+                        console.log("Provider is", provider)
+                        return provider;
+
+                    } else {
+                        return null;
+                    }
+                }
+            };
+            this.provider = getProvider()
+        }
+        if (this.provider != null) {
+            try {
+                const resp = await this.provider.connect();
+                console.log("Public Key is")
+                console.log(resp.publicKey.toString());
+                this.pubkey = resp.publicKey
+                this.user_oil_ata = this.findAssociatedTokenAddress(this.pubkey, this.oil).toString()
+                // 26qv4GCcx98RihuK3c4T6ozB3J7L6VwCuFVc7Ta2A3Uo 
+            } catch (err) {
+                // { code: 4001, message: 'User rejected the request.' }
+            }
+        } else {
+            this.keypair = Keypair.fromSecretKey(this.secretKey);
+            this.pubkey = this.keypair.publicKey
+            this.user_oil_ata = this.findAssociatedTokenAddress(this.keypair.publicKey, this.oil).toString()
+        }
     }
 
     async attest_from_solana() {
@@ -51,7 +88,7 @@ class Wormhole {
             connection,
             network.bridgeAddress, //SOL_BRIDGE_ADDRESS,
             network.tokenBridgeAddress, //SOL_TOKEN_BRIDGE_ADDRESS,
-            keypair.publicKey.toString(), //payerAddress,
+            this.pubkey, //payerAddress,
             network.testToken, //mintAddress
         );
         transaction.partialSign(keypair)
@@ -134,6 +171,10 @@ class Wormhole {
         const keypair = Keypair.fromSecretKey(secretKey);
         const targetRecepient = Buffer.from(tryNativeToHexString(this.config.evm0.publicKey, "ethereum"), 'hex');
 
+        if (this.user_oil_ata == null) {
+            return null
+        }
+
         const transaction = await transferFromSolana(
             this.connection,
             this.config.solana.bridgeAddress,
@@ -145,8 +186,15 @@ class Wormhole {
             targetRecepient, //config.networks[destination_chain].publicKey, //config.networks[destination_chain].tokenBridgeAddress, // targetAddress,
             this.config.evm0.wormholeChainId, //CHAIN_ID_ETH,
         );
-        transaction.partialSign(keypair)
-        const txid = await this.connection.sendRawTransaction(transaction.serialize());
+        let txid = null
+        if (this.provider == null) {
+            transaction.partialSign(keypair)
+            const txid = await this.connection.sendRawTransaction(transaction.serialize());
+        } else {
+            let blockhash = (await this.connection.getLatestBlockhash('finalized')).blockhash;
+            const tx_signed = await this.provider.signTransaction(transaction);
+            txid = await this.connection.sendRawTransaction(tx_signed.serialize(), this.options);
+        }
         console.log("Transfer from Solana to Wormhole", txid)
         // Somehow using this.connection instead of a new connection instiated inside the function is slow for this method
         await this.connection.confirmTransaction(txid);
@@ -248,14 +296,15 @@ class Wormhole {
     }
 
     async complete_transfer_on_solana(vaaBytes) {
+        const keypair = Keypair.fromSecretKey(this.secretKey);
         let txid = await postVaaSolanaWithRetry(
             this.connection,
             async (transaction) => {
-                transaction.partialSign(this.keypair);
+                transaction.partialSign(Keypair.fromSecretKey(this.secretKey));
                 return transaction;
             },
             this.config.solana.bridgeAddress, //srcNetwork.bridgeAddress,
-            this.keypair.publicKey.toString(), //srcKey.publicKey.toString(),
+            keypair.publicKey.toString(), //srcKey.publicKey.toString(),
             Buffer.from(vaaBytes.vaaBytes, "base64"),
             10
         );
@@ -265,11 +314,16 @@ class Wormhole {
             this.connection,
             this.config.solana.bridgeAddress, //SOL_BRIDGE_ADDRESS,
             this.config.solana.tokenBridgeAddress, //SOL_TOKEN_BRIDGE_ADDRESS,
-            this.keypair.publicKey.toString(), // payerAddress,
+            keypair.publicKey.toString(), // payerAddress,
             Buffer.from(vaaBytes.vaaBytes, "base64"), //vaaBytes, //signedVAA,
         );
-        transaction.partialSign(this.keypair)
-        txid = await this.connection.sendRawTransaction(transaction.serialize());
+        if (this.provider == null) {
+            transaction.partialSign(keypair)
+            txid = await this.connection.sendRawTransaction(transaction.serialize());
+        } else {
+            const tx_signed = await this.provider.signTransaction(transaction);
+            txid = await this.connection.sendRawTransaction(tx_signed.serialize(), this.options);
+        }
         await this.connection.confirmTransaction(txid);
         console.log("Token redeemed", txid)
         return txid
